@@ -1,3 +1,5 @@
+import Validator from '../validator';
+
 class Transaction {
     constructor() {
         this.store = {};
@@ -6,7 +8,8 @@ class Transaction {
 
     async dispatch(scenario) {
         scenario.sort((a, b) => a.index > b.index);
-        if(!this.isValid(scenario)) {
+
+        if (!this.isValid(scenario)) {
             throw new Error('Invalid scenario');
         }
 
@@ -24,19 +27,18 @@ class Transaction {
                 error: null
             };
 
-            Object.assign(storeBefore, this.store);
-            log.storeBefore = storeBefore;
+            storeBefore = { ...this.store };
 
             try {
                 await scenario[i].call(this.store);
 
-                Object.assign(storeAfter, this.store);
+                log.storeBefore = storeBefore;
+                storeAfter = { ...this.store };
                 log.storeAfter = storeAfter;
 
                 this.logs.push(log);
             } catch (err) {
-                Object.assign(storeAfter, this.store);
-                log.storeAfter = storeAfter;
+                storeAfter = { ...this.store };
 
                 log.error = {
                     name: err.name,
@@ -46,6 +48,7 @@ class Transaction {
 
                 if (scenario[i].hasOwnProperty('silent') && scenario[i].silent) {
                     log.silent = true;
+                    log.storeBefore = storeBefore;
                     log.storeAfter = storeAfter;
 
                     this.logs.push(log);
@@ -69,29 +72,31 @@ class Transaction {
     }
 
     isValid(scenario) {
-        if (scenario.length === 1 &&
-            scenario[0].hasOwnProperty('restore') ||
-            scenario[scenario.length - 1].hasOwnProperty('restore')) {
+        if (scenario.length === 1 && scenario[0].hasOwnProperty('restore')) {
+            return false;
+        } else if (scenario.length > 1 && scenario[scenario.length - 1].hasOwnProperty('restore')) {
             return false;
         }
 
-        if(!scenario.every(item => {
-            return item.hasOwnProperty('index') &&
-                typeof item.index === 'number' &&
-                item.hasOwnProperty('meta') &&
-                typeof item.meta === 'object' &&
-                item.meta.hasOwnProperty('title') &&
-                typeof item.meta.title === 'string' &&
-                item.meta.hasOwnProperty('description') &&
-                typeof item.meta.description === 'string' &&
-                item.hasOwnProperty('call') &&
-                typeof item.call === 'function'
-        })) {
-            return false
+        for (let item of scenario) {
+            if (!Validator.validate(item, {
+                index: 'number',
+                meta: {
+                    title: 'string',
+                    description: 'string'
+                },
+                call: 'function'
+            })) {
+                return false;
+            }
+
+            if (Object.getOwnPropertyNames(item).length > 5 || Object.getOwnPropertyNames(item.meta).length > 2) {
+                return false;
+            }
         }
 
-        for(let i = 0; i < scenario.length-1; i++) {
-            if(scenario[i].index >= scenario[i+1].index) {
+        for (let i = 0; i < scenario.length - 1; i++) {
+            if (scenario[i].index >= scenario[i + 1].index || scenario[i].index < 0 || scenario[i + 1].index < 0) {
                 return false;
             }
         }
