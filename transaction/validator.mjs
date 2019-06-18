@@ -27,12 +27,14 @@ class Validator {
                     continue;
                 } else {
                     flag = false;
+                    break;
                 }
             } else if (data.hasOwnProperty(name)) {
                 if (typeof data[name] === schema[name].type) {
                     continue;
                 } else {
                     flag = false;
+                    break;
                 }
             }
         }

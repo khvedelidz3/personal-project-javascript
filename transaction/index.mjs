@@ -4,6 +4,30 @@ class Transaction {
     constructor() {
         this.store = {};
         this.logs = [];
+        this.schema = {
+            index: {
+                type: 'number'
+            },
+            silent: {
+                type: 'boolean',
+                optional: true
+            },
+            meta: {
+                title: {
+                    type: 'string'
+                },
+                description: {
+                    type: 'string'
+                }
+            },
+            call: {
+                type: 'function'
+            },
+            restore: {
+                type: 'function',
+                optional: true
+            }
+        }
     }
 
     async dispatch(scenario) {
@@ -78,30 +102,7 @@ class Transaction {
         }
 
         for (let item of scenario) {
-            if (!Validator.validate(item, {
-                index: {
-                    type: 'string'
-                },
-                silent: {
-                    type: 'string',
-                    optional: true
-                },
-                meta: {
-                    title: {
-                        type: 'string'
-                    },
-                    description: {
-                        type: 'string'
-                    }
-                },
-                call: {
-                    type: 'function'
-                },
-                restore: {
-                    type: 'function',
-                    optional: true
-                }
-            })) {
+            if (!Validator.validate(item, this.schema)) {
                 return false;
             }
         }
