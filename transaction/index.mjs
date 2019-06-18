@@ -1,4 +1,4 @@
-import Validator from '../validator';
+import Validator from './validator';
 
 class Transaction {
     constructor() {
@@ -72,33 +72,43 @@ class Transaction {
     }
 
     isValid(scenario) {
-        if (scenario.length === 1 && scenario[0].hasOwnProperty('restore')) {
-            return false;
-        } else if (scenario.length > 1 && scenario[scenario.length - 1].hasOwnProperty('restore')) {
+
+        if (scenario[scenario.length - 1].hasOwnProperty('restore')) {
             return false;
         }
 
         for (let item of scenario) {
             if (!Validator.validate(item, {
-                index: 'number',
-                meta: {
-                    title: 'string',
-                    description: 'string'
+                index: {
+                    type: 'string'
                 },
-                call: 'function'
+                silent: {
+                    type: 'string',
+                    optional: true
+                },
+                meta: {
+                    title: {
+                        type: 'string'
+                    },
+                    description: {
+                        type: 'string'
+                    }
+                },
+                call: {
+                    type: 'function'
+                },
+                restore: {
+                    type: 'function',
+                    optional: true
+                }
             })) {
-                return false;
-            }
-
-            if (Object.getOwnPropertyNames(item).length > 5 || Object.getOwnPropertyNames(item.meta).length > 2) {
                 return false;
             }
         }
 
-        for (let i = 0; i < scenario.length - 1; i++) {
-            if (scenario[i].index >= scenario[i + 1].index || scenario[i].index < 0 || scenario[i + 1].index < 0) {
-                return false;
-            }
+        let mySet = new Set(scenario.map(x => x.index).filter(x => x >= 0))
+        if (mySet.size !== scenario.length) {
+            return false;
         }
 
         return true;

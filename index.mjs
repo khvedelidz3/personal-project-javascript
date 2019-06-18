@@ -15,10 +15,7 @@ const scenario = [
             title: 'second title',
             description: 'second description'
         },
-        call: async (store) => {
-            store.second = 'second call'
-            throw new Error('my error')
-        },
+        call: async (store) => { },
     }
 ];
 
