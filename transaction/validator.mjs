@@ -4,41 +4,31 @@ class Validator {
             .filter(x => !Object.getOwnPropertyNames(schema).includes(x));
 
         if (diff.length) {
-            return false;
+            throw new Error(`${diff[0]} property should not be in data`)
         }
 
         let names = Object.getOwnPropertyNames(schema);
-        let flag = true;
         for (let name of names) {
             if (Array.isArray(data[name])) {
                 for (let val of data[name]) {
-                    flag = Validator.validate(val, schema[name][0])
-                    if (!flag) {
-                        break;
-                    }
+                    Validator.validate(val, schema[name][0])
                 }
             } else if (typeof data[name] === 'object') {
-                flag = Validator.validate(data[name], schema[name])
-                if (!flag) {
-                    break;
-                }
+                Validator.validate(data[name], schema[name])
             } else if (!data.hasOwnProperty(name)) {
                 if (schema[name].hasOwnProperty('optional') && schema[name].optional) {
                     continue;
                 } else {
-                    flag = false;
-                    break;
+                    throw new Error(`Missing ${name} property`)
                 }
             } else if (data.hasOwnProperty(name)) {
                 if (typeof data[name] === schema[name].type) {
                     continue;
                 } else {
-                    flag = false;
-                    break;
+                    throw new Error(`${name} property type should be ${schema[name].type}`)
                 }
             }
         }
-        return flag;
     }
 }
 

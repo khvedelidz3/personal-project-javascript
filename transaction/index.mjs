@@ -32,10 +32,7 @@ class Transaction {
 
     async dispatch(scenario) {
         scenario.sort((a, b) => a.index > b.index);
-
-        if (!this.isValid(scenario)) {
-            throw new Error('Invalid scenario');
-        }
+        this.isValid(scenario)
 
         let n = scenario.length;
 
@@ -98,21 +95,17 @@ class Transaction {
     isValid(scenario) {
 
         if (scenario[scenario.length - 1].hasOwnProperty('restore')) {
-            return false;
+            throw new Error(`restore method is extra`)
         }
 
         for (let item of scenario) {
-            if (!Validator.validate(item, this.schema)) {
-                return false;
-            }
+            Validator.validate(item, this.schema)
         }
 
         let mySet = new Set(scenario.map(x => x.index).filter(x => x >= 0))
         if (mySet.size !== scenario.length) {
-            return false;
+            throw new Error(`index value can't be duplicated or negative`)
         }
-
-        return true;
     }
 }
 
